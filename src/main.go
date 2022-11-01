@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 
+	"github.com/ambowes87/betechtestv1.1/pkg/db"
 	"github.com/ambowes87/betechtestv1.1/pkg/logger"
 	"github.com/ambowes87/betechtestv1.1/pkg/notifications"
 	"github.com/ambowes87/betechtestv1.1/pkg/usersvc"
@@ -17,7 +18,7 @@ func main() {
 	notificationsBroker := notifications.NewBroker()
 	notificationsBroker.Subscribe("user") // TODO: currently does nothing except create topic channel
 
-	svc := usersvc.New("localhost", "/user", *userSvcPort, notificationsBroker)
+	svc := usersvc.New("localhost", "/user", *userSvcPort, notificationsBroker, db.NewUserSQLStore())
 
 	err := svc.Start()
 	logger.Log(err.Error())

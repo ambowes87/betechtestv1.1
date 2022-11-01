@@ -13,38 +13,52 @@ import (
 	"github.com/ambowes87/betechtestv1.1/pkg/notifications"
 
 	"github.com/google/uuid"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 const (
 	// ServiceName the name of this service
 	ServiceName = "UserService"
+	// Version is the version of the running servicgo mod tidye
+	Version = "1.0"
 
 	notificationName = "user"
 )
 
 type UserService struct {
 	address            string
-	endpoint           string
+	usersEndpoint      string
 	port               int
 	notificationBroker *notifications.Broker
+	userStore          db.UserStore
+
+	healthEndpoint string
 }
 
-func New(address, endpoint string, port int, notificationBroker *notifications.Broker) *UserService {
+func New(addr, ep string, port int, nb *notifications.Broker, us db.UserStore) *UserService {
 	return &UserService{
-		address:            address,
-		endpoint:           endpoint,
+		address:            addr,
+		usersEndpoint:      ep,
 		port:               port,
-		notificationBroker: notificationBroker,
+		notificationBroker: nb,
+		userStore:          us,
+		healthEndpoint:     "/health",
 	}
 }
 
+// Start starts the service listening for requests, always returns a non-nil error on exit
 func (s *UserService) Start() error {
-	http.HandleFunc(s.endpoint, s.handleRequest)
-	return http.ListenAndServe(fmt.Sprintf("%s:%d", s.address, s.port), nil)
+	http.HandleFunc(s.usersEndpoint, s.handleUsersRequest)
+	http.HandleFunc(s.healthEndpoint, s.handleHealthRequest)
+	s.userStore.Open()
+	err := http.ListenAndServe(fmt.Sprintf("%s:%d", s.address, s.port), nil)
+	if s.userStore != nil {
+		s.userStore.Close()
+	}
+	return err
 }
 
-// HandleRequest handles a call to add, get, update or delete a user
-func (s *UserService) handleRequest(w http.ResponseWriter, r *http.Request) {
+func (s *UserService) handleUsersRequest(w http.ResponseWriter, r *http.Request) {
 	correlationID := uuid.New()
 	logger.Log(fmt.Sprintf("%s | %s?%s | [%s]", r.Method, r.URL.EscapedPath(), r.URL.RawQuery, correlationID.String()))
 
@@ -62,13 +76,25 @@ func (s *UserService) handleRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *UserService) handleHealthRequest(w http.ResponseWriter, r *http.Request) {
+	correlationID := uuid.New()
+	logger.Log(fmt.Sprintf("%s | %s?%s | [%s]", r.Method, r.URL.EscapedPath(), r.URL.RawQuery, correlationID.String()))
+
+	w.Header().Add("Service-Version", Version)
+	if s.userStore.Ping() != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
 func (s *UserService) addUser(w http.ResponseWriter, r *http.Request, cid uuid.UUID) {
 	userData, err := extractUserFromBody(r)
 	if err != nil {
 		handleError(http.StatusBadRequest, err.Error(), w, cid)
 		return
 	}
-	err = db.AddUser(userData)
+	err = s.userStore.Add(userData)
 	if err != nil {
 		handleError(http.StatusInternalServerError, err.Error(), w, cid)
 		return
@@ -83,7 +109,7 @@ func (s *UserService) getUser(w http.ResponseWriter, r *http.Request, cid uuid.U
 		handleError(http.StatusBadRequest, err.Error(), w, cid)
 		return
 	}
-	user, err := db.GetUser(id)
+	user, err := s.userStore.Get(id)
 	if err != nil {
 		handleError(http.StatusInternalServerError, err.Error(), w, cid)
 		return
@@ -103,7 +129,7 @@ func (s *UserService) updateUser(w http.ResponseWriter, r *http.Request, cid uui
 		handleError(http.StatusBadRequest, err.Error(), w, cid)
 		return
 	}
-	err = db.UpdateUser(userData)
+	err = s.userStore.Update(userData)
 	if err != nil {
 		handleError(http.StatusInternalServerError, err.Error(), w, cid)
 		return
@@ -118,7 +144,7 @@ func (s *UserService) deleteUser(w http.ResponseWriter, r *http.Request, cid uui
 		handleError(http.StatusBadRequest, err.Error(), w, cid)
 		return
 	}
-	err = db.DeleteUser(id)
+	err = s.userStore.Delete(id)
 	if err != nil {
 		handleError(http.StatusInternalServerError, err.Error(), w, cid)
 		return
