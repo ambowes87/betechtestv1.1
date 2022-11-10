@@ -6,7 +6,8 @@
 
 *Build Instructions (Windows)*
 
-- Build the binary using `go build -o techtest.exe src/`
+- Clone the repo locally
+- Build the binary using `go build -o techtest.exe src/` from the root of the project
 - The executable relies on a sqlite database named userstore.db in the same directory (my laptop doesn't support docker sadly)
 
 *Running Instructions (Windows)*
