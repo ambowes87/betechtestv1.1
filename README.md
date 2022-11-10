@@ -8,7 +8,7 @@
 
 - Clone the repo locally
 - Build the binary using `go build -o techtest.exe src/` from the root of the project
-- The executable relies on a sqlite database named userstore.db in the same directory (my laptop doesn't support docker sadly)
+- The executable relies on a sqlite database named userstore.db in the same directory (my laptop doesn't support docker sadly). This is included in the project, yes I know this would never be done in a production setting :)
 
 *Running Instructions (Windows)*
 
