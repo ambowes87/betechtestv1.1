@@ -45,6 +45,10 @@ func (u *UserMemStore) Get(id string) (data.UserData, error) {
 	return user, nil
 }
 
+func (u *UserMemStore) GetPagedByCountry(limit, page, country string) ([]data.UserData, error) {
+	return nil, errors.New("not implemented")
+}
+
 func (u *UserMemStore) Update(user data.UserData) error {
 	_, ok := u.fakeUsers[user.ID]
 	if !ok {

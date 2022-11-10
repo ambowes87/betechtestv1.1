@@ -66,7 +66,7 @@ func (s *UserService) handleUsersRequest(w http.ResponseWriter, r *http.Request)
 	case http.MethodPost:
 		s.addUser(w, r, correlationID)
 	case http.MethodGet:
-		s.getUser(w, r, correlationID)
+		s.getUsers(w, r, correlationID)
 	case http.MethodPut:
 		s.updateUser(w, r, correlationID)
 	case http.MethodDelete:
@@ -121,6 +121,41 @@ func (s *UserService) getUser(w http.ResponseWriter, r *http.Request, cid uuid.U
 	}
 	w.Header().Set("Content-Type", "application/json")
 	writeSuccessWithBody(http.StatusOK, buf, "Got user", w, cid)
+}
+
+func (s *UserService) getUsers(w http.ResponseWriter, r *http.Request, cid uuid.UUID) {
+
+	limit := r.FormValue("li")
+	if len(limit) == 0 {
+		handleError(http.StatusBadRequest, "no limit provided on request", w, cid)
+		return
+	}
+	page := r.FormValue("pg")
+	if len(page) == 0 {
+		page = "0"
+	}
+	country := r.FormValue("co")
+	if len(country) == 0 {
+		handleError(http.StatusBadRequest, "no country provided on request", w, cid)
+		return
+	}
+
+	users, err := s.userStore.GetPagedByCountry(limit, page, country)
+	if err != nil {
+		handleError(http.StatusInternalServerError, err.Error(), w, cid)
+		return
+	}
+	if users == nil {
+		handleError(http.StatusNotFound, "no users found", w, cid)
+		return
+	}
+	buf, err := json.Marshal(users)
+	if err != nil {
+		handleError(http.StatusInternalServerError, err.Error(), w, cid)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	writeSuccessWithBody(http.StatusOK, buf, "Got users", w, cid)
 }
 
 func (s *UserService) updateUser(w http.ResponseWriter, r *http.Request, cid uuid.UUID) {

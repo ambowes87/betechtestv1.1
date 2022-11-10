@@ -10,6 +10,7 @@ type UserStore interface {
 	Close()
 	Add(user data.UserData) error
 	Get(id string) (data.UserData, error)
+	GetPagedByCountry(limit, page, country string) ([]data.UserData, error)
 	Update(user data.UserData) error
 	Delete(id string) error
 }
