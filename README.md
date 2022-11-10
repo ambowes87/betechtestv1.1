@@ -19,4 +19,4 @@
 
 - Unit tests are very light (in fact only one), usually I'd have much more coverage but ran out of time - I chose to do a http server one as that can be a bit more complex
 - The pagination on Get users didn't work, this was probably due to an issue with my SQL query - I left the code in to show I know *how* it's done but this solution isn't working properly
-- 
+- I've never used a pub/sub system before. I attempted one that just basically notifies a channel on a user update - but nothing is actually picking this up
