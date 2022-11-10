@@ -12,7 +12,7 @@ import (
 func main() {
 	logger.Log("BE Tech Test v1.1 - Alex Bowes")
 
-	userSvcPort := flag.Int("usersvcport", 8080, "port to listen to requests on")
+	userSvcPort := flag.Int("port", 8080, "port to listen to requests on")
 	flag.Parse()
 
 	notificationsBroker := notifications.NewBroker()
