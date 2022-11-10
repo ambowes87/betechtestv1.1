@@ -12,7 +12,7 @@
 
 **Running Instructions (Windows)**
 
-- Launch the binary using `./techtest.exe -usersvcport 9090` to start the server
+- Launch the binary using `./techtest.exe -port 9090` to start the server
 - Check the server is running by calling `http://localhost:9090/health` in a browser, you should get 200 returned and a blank page
 
 **Notes / Future Work**
