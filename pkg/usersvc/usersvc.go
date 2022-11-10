@@ -66,7 +66,7 @@ func (s *UserService) handleUsersRequest(w http.ResponseWriter, r *http.Request)
 	case http.MethodPost:
 		s.addUser(w, r, correlationID)
 	case http.MethodGet:
-		s.getUsers(w, r, correlationID)
+		s.getUser(w, r, correlationID)
 	case http.MethodPut:
 		s.updateUser(w, r, correlationID)
 	case http.MethodDelete:
